@@ -13,7 +13,6 @@ from fildem.menu_model.menu_model import MenuModel
 
 
 class DbusMenu:
-
 	def __init__(self):
 		self.keyb = GlobalKeybinder.create(self.on_keybind_activated)
 		self.app = None
@@ -28,6 +27,14 @@ class DbusMenu:
 		self._listen_menu_activated()
 		self._listen_hud_activated()
 		WindowManager.add_listener(self.on_window_switched)
+
+		GLib.timeout_add(50, self.poll)
+
+	def poll(self):
+		if self.app is not None and not self.app.RUNNING:
+			self.app.RUNNING = True
+			self.app.run()
+		return True
 
 	def _init_window(self):
 		self._menu_model = MenuModel(self.session, self.window)
@@ -80,17 +87,23 @@ class DbusMenu:
 		self.app.move_window(x)
 
 	def _start_app(self, menu_activated: str, offset=300):
-		if self.app is None:
-			self.app = GlobalMenu(self, menu_activated, offset)
-			self.app.connect('shutdown', self.on_app_shutdown)
-			self.app.run()
+		if self.app is not None:
+			self.app.on_hide_window()
+
+			# Closed it again by pressing
+			if self.app.initial_menu == menu_activated and self.app.initial_x == offset:
+				return
+
+		self.app = GlobalMenu(self, menu_activated, offset)
+		self.app.connect('shutdown', self.on_app_shutdown)
 
 	def on_app_started(self):
 		self._echo_onoff(True)
 
 	def on_app_shutdown(self, app):
 		self._echo_onoff(False)
-		self.app = None
+		if self.app == app:
+			self.app = None
 
 	def _echo_onoff(self, on: bool):
 		self.proxy = dbus.SessionBus().get_object(MyService.BUS_NAME, MyService.BUS_PATH)

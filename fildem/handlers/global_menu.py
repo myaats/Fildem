@@ -272,6 +272,7 @@ class CommandWindow(Gtk.ApplicationWindow):
 
 
 class GlobalMenu(Gtk.Application):
+	RUNNING = False
 
 	def __init__(self, dbus_menu, initial_menu=None, x=-1, *args, **kwargs):
 		kwargs['application_id'] = 'org.gonzaarcr.fildemapp'
