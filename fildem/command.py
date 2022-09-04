@@ -8,8 +8,8 @@ from fildem.handlers.global_menu import GlobalMenu
 from fildem.handlers.rofi import RofiMenu
 
 def run_command(module, function):
-	args = 'python3 -c "from fildem.%s import %s as run; run()"'
-	args = args % (module, function)
+	args = '%s -c "from fildem.%s import %s as run; run()"'
+	args = args % (os.environ.get("PYTHON", "python3"), module, function)
 
 	proc = threading.Thread(target=os.system, args=[args])
 	proc.start()
